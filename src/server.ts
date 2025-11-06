@@ -42,7 +42,7 @@ app.use(
 
 // CORS setup
 const corsOptions = {
-  origin: "https://lava-jato-five.vercel.app",
+  origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: false
 };
