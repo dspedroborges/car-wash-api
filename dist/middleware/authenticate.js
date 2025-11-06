@@ -2,7 +2,10 @@ import {} from "express";
 import { verifyToken } from "../utils/auth.js";
 import { prisma } from "../utils/prisma.js";
 export async function authenticate(req, res, next) {
-    const token = req.cookies?.accessToken;
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.startsWith("Bearer ")
+        ? authHeader.split(" ")[1]
+        : null;
     if (!token)
         return res.status(401).json({ message: "Token not provided" });
     const decoded = await verifyToken(token);
@@ -10,9 +13,7 @@ export async function authenticate(req, res, next) {
         return res.status(401).json({ message: "Invalid token" });
     const user = await prisma.users.findUnique({
         where: { id: Number(decoded.data.userId) },
-        include: {
-            role: true,
-        }
+        include: { role: true }
     });
     if (!user)
         return res.status(404).json({ message: "User not found" });

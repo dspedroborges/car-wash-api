@@ -8,7 +8,10 @@ export interface AuthenticatedRequest extends Request {
 }
 
 export async function authenticate(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  const token = req.cookies?.accessToken;
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.startsWith("Bearer ")
+    ? authHeader.split(" ")[1]
+    : null;
 
   if (!token) return res.status(401).json({ message: "Token not provided" });
 
@@ -18,9 +21,7 @@ export async function authenticate(req: AuthenticatedRequest, res: Response, nex
 
   const user = await prisma.users.findUnique({
     where: { id: Number(decoded.data.userId) },
-    include: {
-      role: true,
-    }
+    include: { role: true }
   });
 
   if (!user) return res.status(404).json({ message: "User not found" });
