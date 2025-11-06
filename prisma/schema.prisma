@@ -44,6 +44,7 @@ model Users {
 model Roles {
   id          Int           @id @default(autoincrement())
   userId      Int           @unique
+  name        String
   user        Users         @relation(fields: [userId], references: [id])
   permissions Permissions[]
 }

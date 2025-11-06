@@ -18,15 +18,20 @@ export async function authenticate(req, res, next) {
         return res.status(404).json({ message: "User not found" });
     if (!user.role)
         return res.status(404).json({ message: "Not a valid role" });
-    const hasPermission = await prisma.permissions.findFirst({
-        where: {
-            roleId: user.role?.id,
-            method: req.method,
-            route: req.route,
-        }
-    });
-    if (!hasPermission)
-        return res.status(403).json({ message: "Forbidden" });
+    if (user.role.name !== "admin") {
+        const hasPermission = await prisma.permissions.findFirst({
+            where: {
+                roleId: user.role?.id,
+                method: req.method,
+                route: req.route,
+            }
+        });
+        if (!hasPermission)
+            return res.status(403).json({ message: "Forbidden" });
+    }
+    else {
+        req.isAdmin = true;
+    }
     req.authenticatedUserId = user.id;
     if (req.method !== "GET") {
         await prisma.logs.create({

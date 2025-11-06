@@ -30,7 +30,7 @@ app.use(rateLimit({
 app.set("trust proxy", true);
 app.use(xssSanitizerMiddleware);
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: "https://lava-jato-five.vercel.app/",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
 }));
@@ -53,7 +53,12 @@ app.get("/", async (req, res) => {
             data: {
                 username: "admin",
                 password: await encryptPassword("123"),
-                type: "admin"
+                type: "admin",
+                role: {
+                    create: {
+                        name: "admin"
+                    }
+                }
             }
         });
     }

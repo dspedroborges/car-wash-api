@@ -25,19 +25,19 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
 app.use(
-    rateLimit({
-        windowMs: 15 * 60 * 1000,
-        max: 100,
-        standardHeaders: true,
-        legacyHeaders: false,
-        message: "Too many requests, please try again later."
-    })
+  rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: "Too many requests, please try again later."
+  })
 );
 app.set("trust proxy", true);
 app.use(xssSanitizerMiddleware);
 
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: "https://lava-jato-five.vercel.app/",
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
 }));
@@ -63,17 +63,22 @@ app.get("/", async (req, res) => {
       data: {
         username: "admin",
         password: await encryptPassword("123"),
-        type: "admin"
+        type: "admin",
+        role: {
+          create: {
+            name: "admin"
+          }
+        }
       }
     });
   }
 });
 
 if (process.env.NODE_ENV !== "production") {
-    const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => {
-        console.log("Server running on PORT", PORT);
-    });
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log("Server running on PORT", PORT);
+  });
 }
 
 export default app;
