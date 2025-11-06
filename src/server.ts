@@ -47,7 +47,7 @@ const corsOptions = {
   credentials: false
 };
 app.use(cors(corsOptions));
-app.options("/*", cors(corsOptions)); // handle preflight requests
+app.options(/.*/, cors(corsOptions));
 
 // Static files
 app.use("/uploads", express.static("uploads"));
