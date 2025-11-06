@@ -37,9 +37,9 @@ app.set("trust proxy", true);
 app.use(xssSanitizerMiddleware);
 
 app.use(cors({
-  origin: "https://lava-jato-five.vercel.app/",
+  origin: "https://lava-jato-five.vercel.app",
   methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true,
+  credentials: false,
 }));
 
 app.use("/uploads", express.static("uploads"));
