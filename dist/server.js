@@ -34,12 +34,12 @@ app.use(rateLimit({
 }));
 // CORS setup
 const corsOptions = {
-    origin: "https://lava-jato-five.vercel.app",
+    origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: false
 };
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions)); // handle preflight requests
+app.options("/*", cors(corsOptions)); // handle preflight requests
 // Static files
 app.use("/uploads", express.static("uploads"));
 // Routes
