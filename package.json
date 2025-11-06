@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc",
-    "start": "npx prisma generate && node dist/server.js"
+    "build": "tsc && npx prisma generate",
+    "start": "node dist/server.js"
   },
   "repository": {
     "type": "git",
