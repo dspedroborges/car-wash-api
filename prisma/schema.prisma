@@ -1,0 +1,198 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PaymentMethod {
+  pix
+  cash
+  credit
+  debit
+  manual
+}
+
+enum PaymentStatus {
+  paid
+  pending
+  canceled
+}
+
+enum UserType {
+  admin
+  employee
+  client
+}
+
+model Users {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  username  String   @unique
+  type      UserType
+  password  String
+
+  debts            Debts[]
+  passwordRecovery PasswordRecoveries?
+  washLogs         WashLogs[]
+  role             Roles?
+  logs             Logs[]
+}
+
+model Roles {
+  id          Int           @id @default(autoincrement())
+  userId      Int           @unique
+  user        Users         @relation(fields: [userId], references: [id])
+  permissions Permissions[]
+}
+
+model Permissions {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  roleId    Int
+  method    String
+  route     String
+
+  role Roles @relation(fields: [roleId], references: [id])
+}
+
+model Clients {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  birthDate DateTime
+  name      String
+  address   String
+  cpf       String
+  rg        String
+  phone     String
+  email     String
+  active    Boolean  @default(true)
+
+  cars  Cars[]
+  debts Debts[]
+}
+
+model Cars {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  clientId  Int
+  model     String
+  color     String
+  plate     String   @unique
+  active    Boolean  @default(true)
+  approved  Boolean  @default(false)
+
+  client   Clients     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  photos   CarPhotos[]
+  WashLogs WashLogs[]
+}
+
+model CarPhotos {
+  id       Int    @id @default(autoincrement())
+  carId    Int
+  filename String
+  url      String
+
+  car Cars @relation(fields: [carId], references: [id], onDelete: Cascade)
+}
+
+model WashTypes {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  packages Packages[]
+  debts    Debts[]
+}
+
+model Packages {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  washTypeId  Int
+  createdAt   DateTime @default(now())
+  price       Int
+
+  washType WashTypes @relation(fields: [washTypeId], references: [id], onDelete: Cascade)
+  debts    Debts[]
+}
+
+model Debts {
+  id            Int           @id @default(autoincrement())
+  clientId      Int
+  userId        Int
+  washTypeId    Int?
+  packageId     Int?
+  createdAt     DateTime      @default(now())
+  expiresAt     DateTime
+  observation   String?
+  discount      Int?          @default(0)
+  value         Int
+  paymentMethod PaymentMethod
+  status        PaymentStatus
+
+  client   Clients    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  user     Users      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  washType WashTypes? @relation(fields: [washTypeId], references: [id], onDelete: SetNull)
+  package  Packages?  @relation(fields: [packageId], references: [id], onDelete: SetNull)
+}
+
+model WashLogs {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  details   String
+  carId     Int
+  startedAt String
+  endedAt   String
+  userId    Int
+
+  user                  Users                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  car                   Cars                    @relation(fields: [carId], references: [id], onDelete: Cascade)
+  WashLogPicturesBefore WashLogPicturesBefore[]
+  WashLogPicturesAfter  WashLogPicturesAfter[]
+}
+
+model WashLogPicturesBefore {
+  id        Int      @id @default(autoincrement())
+  washLogId Int
+  filename  String
+  url       String
+  washLog   WashLogs @relation(fields: [washLogId], references: [id], onDelete: Cascade)
+}
+
+model WashLogPicturesAfter {
+  id        Int      @id @default(autoincrement())
+  washLogId Int
+  filename  String
+  url       String
+  washLog   WashLogs @relation(fields: [washLogId], references: [id], onDelete: Cascade)
+}
+
+model PasswordRecoveries {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  userId    Int      @unique
+  token     String   @unique
+
+  user Users @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model RevokedTokens {
+  id    Int    @id @default(autoincrement())
+  token String @unique
+}
+
+model Logs {
+  id        Int      @id @default(autoincrement())
+  ip        String
+  userId    Int
+  path      String
+  method    String
+  createdAt DateTime @default(now())
+
+  user Users @relation(fields: [userId], references: [id])
+}
