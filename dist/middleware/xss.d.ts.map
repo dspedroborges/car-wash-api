@@ -1,0 +1,1 @@
+{"version":3,"file":"xss.d.ts","sourceRoot":"","sources":["../../src/middleware/xss.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,KAAK,OAAO,EAAE,KAAK,QAAQ,EAAE,KAAK,YAAY,EAAE,MAAM,SAAS,CAAC;AAmBzE,wBAAgB,sBAAsB,CAAC,GAAG,EAAE,OAAO,EAAE,GAAG,EAAE,QAAQ,EAAE,IAAI,EAAE,YAAY,QAKrF"}

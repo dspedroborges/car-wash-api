@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import { prisma } from "../utils/prisma";
+import { prisma } from "../utils/prisma.js";
 
 // Runs every Sunday at midnight
 cron.schedule("0 0 * * 0", async () => {
