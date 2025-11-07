@@ -2,7 +2,7 @@ import { Router } from "express";
 import { prisma } from "../utils/prisma.js";
 import { authenticate } from "../middleware/authenticate.js";
 import multer from "multer";
-import { uploadImage } from "../utils/upload.js";
+import { deleteImageFromVercelBlob, uploadImage } from "../utils/upload.js";
 const storage = multer.memoryStorage();
 const upload = multer({
     storage,
@@ -152,6 +152,14 @@ router.put("/:id", authenticate, upload.fields([
         const washLog = await prisma.washLogs.findUnique({ where: { id: washLogId } });
         if (!washLog)
             return res.status(404).json({ message: "Log não encontrado" });
+        const beforePhotos = await prisma.washLogPicturesBefore.findMany({ where: { washLogId } });
+        const afterPhotos = await prisma.washLogPicturesAfter.findMany({ where: { washLogId } });
+        for (const photo of beforePhotos) {
+            await deleteImageFromVercelBlob(photo.url);
+        }
+        for (const photo of afterPhotos) {
+            await deleteImageFromVercelBlob(photo.url);
+        }
         await prisma.washLogPicturesBefore.deleteMany({ where: { washLogId } });
         await prisma.washLogPicturesAfter.deleteMany({ where: { washLogId } });
         const files = req.files;

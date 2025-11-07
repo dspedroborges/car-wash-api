@@ -2,7 +2,7 @@ import { Router, type Request, type Response } from "express";
 import { prisma } from "../utils/prisma.js";
 import { authenticate, type AuthenticatedRequest } from "../middleware/authenticate.js";
 import multer from "multer";
-import { uploadImage } from "../utils/upload.js";
+import { deleteImageFromVercelBlob, uploadImage } from "../utils/upload.js";
 
 const storage = multer.memoryStorage();
 const upload = multer({
