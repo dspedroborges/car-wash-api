@@ -111,7 +111,7 @@ router.post("/", authenticate, async (req: AuthenticatedRequest, res: Response) 
 
   if (!pkg) return res.status(400).json({ message: "Pacote inválido" });
 
-  const baseValue = pkg.price;
+  const baseValue = Number(pkg.price);
   const discountPercent = Number(discount) || 0;
   const finalValue = Math.round(baseValue * (1 - discountPercent / 100));
 
@@ -164,7 +164,7 @@ router.put("/:id", authenticate, async (req: AuthenticatedRequest, res: Response
 
   if (!pkg) return res.status(400).json({ message: "Pacote inválido" });
 
-  const baseValue = pkg.price;
+  const baseValue = Number(pkg.price);
   const discountPercent = Number(discount) || 0;
   const finalValue = Math.round(baseValue * (1 - discountPercent / 100));
 

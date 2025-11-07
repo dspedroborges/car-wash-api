@@ -37,13 +37,14 @@ router.get("/:id", authenticate, async (req: AuthenticatedRequest, res: Response
 });
 
 router.post("/", authenticate, async (req: AuthenticatedRequest, res: Response) => {
-    const { name, description, washTypeId: _washTypeId, price } = req.body;
-    const washTypeId = Number(_washTypeId);
+    const { name, description, washTypeId, price } = req.body;
+
+    console.log({ name, description, washTypeId, price });
 
     if (!req.isAdmin) return res.status(403).json({ message: "Acesso negado"});
 
     const newPackage = await prisma.packages.create({
-        data: { name: String(name).toUpperCase(), description, washTypeId, price: Number(price) },
+        data: { name: String(name).toUpperCase(), description, washTypeId: Number(washTypeId), price: Number(price.replaceAll(",", ".")) },
     });
 
     res.status(201).json({ message: "Pacote criado com sucesso", package: newPackage });
@@ -51,9 +52,10 @@ router.post("/", authenticate, async (req: AuthenticatedRequest, res: Response) 
 
 router.put("/:id", authenticate, async (req: AuthenticatedRequest, res: Response) => {
     const packageId = Number(req.params.id);
-    const { name, description, washTypeId: _washTypeId, price } = req.body;
-    const washTypeId = Number(_washTypeId);
+    const { name, description, washTypeId, price } = req.body;
 
+    console.log({ packageId, name, description, washTypeId, price });
+    console.log({ name: String(name).toUpperCase(), description, washTypeId: Number(washTypeId), price: Number(price.replaceAll(",", ".")) });
     if (!req.isAdmin) return res.status(403).json({ message: "Acesso negado"});
 
     const packageItem = await prisma.packages.findUnique({ where: { id: packageId } });
@@ -61,7 +63,7 @@ router.put("/:id", authenticate, async (req: AuthenticatedRequest, res: Response
 
     const updatedPackage = await prisma.packages.update({
         where: { id: packageId },
-        data: { name: String(name).toUpperCase(), description, washTypeId, price: Number(price) },
+        data: { name: String(name).toUpperCase(), description, washTypeId: Number(washTypeId), price: Number(price.replaceAll(",", ".")) },
     });
 
     res.status(200).json({ message: "Pacote atualizado com sucesso", package: updatedPackage });

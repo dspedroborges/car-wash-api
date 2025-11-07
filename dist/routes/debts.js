@@ -89,7 +89,7 @@ router.post("/", authenticate, async (req, res) => {
     });
     if (!pkg)
         return res.status(400).json({ message: "Pacote inválido" });
-    const baseValue = pkg.price;
+    const baseValue = Number(pkg.price);
     const discountPercent = Number(discount) || 0;
     const finalValue = Math.round(baseValue * (1 - discountPercent / 100));
     await prisma.debts.create({
@@ -127,7 +127,7 @@ router.put("/:id", authenticate, async (req, res) => {
     });
     if (!pkg)
         return res.status(400).json({ message: "Pacote inválido" });
-    const baseValue = pkg.price;
+    const baseValue = Number(pkg.price);
     const discountPercent = Number(discount) || 0;
     const finalValue = Math.round(baseValue * (1 - discountPercent / 100));
     await prisma.debts.update({

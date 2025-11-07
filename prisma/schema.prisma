@@ -115,7 +115,7 @@ model Packages {
   description String?
   washTypeId  Int
   createdAt   DateTime @default(now())
-  price       Int
+  price       Decimal   @db.Decimal(10,2)
 
   washType WashTypes @relation(fields: [washTypeId], references: [id], onDelete: Cascade)
   debts    Debts[]
@@ -131,7 +131,7 @@ model Debts {
   expiresAt     DateTime
   observation   String?
   discount      Int?          @default(0)
-  value         Int
+  value         Decimal   @db.Decimal(10,2)
   paymentMethod PaymentMethod
   status        PaymentStatus
 
