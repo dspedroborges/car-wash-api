@@ -1,29 +1,50 @@
-import { createClient } from "@supabase/supabase-js";
 import fs from "fs";
 import path from "path";
+import { put, del } from "@vercel/blob";
 
-const supabase = createClient(String(process.env.SUPABASE_URL), String(process.env.SUPABASE_KEY));
+// const supabase = createClient(String(process.env.SUPABASE_URL), String(process.env.SUPABASE_KEY));
+
+// export async function uploadImage(file: Express.Multer.File, folder: string) {
+//     if (file.size > 1024 * 1024) throw new Error("Tamanho máximo do arquivo é 1MB");
+
+//     const filename = `${Date.now()}-${file.originalname.replace(/\s+/g, "-")}`;
+//     const filePath = `${folder}/${filename}`;
+
+//     const { error } = await supabase.storage
+//         .from("uploads")
+//         .upload(filePath, file.buffer, {
+//             contentType: file.mimetype,
+//             upsert: false,
+//         });
+
+//     if (error) throw new Error(error.message);
+
+//     const { data: publicUrl } = supabase.storage
+//         .from("uploads")
+//         .getPublicUrl(filePath);
+
+//     return { filename, url: publicUrl.publicUrl };
+// }
 
 export async function uploadImage(file: Express.Multer.File, folder: string) {
     if (file.size > 1024 * 1024) throw new Error("Tamanho máximo do arquivo é 1MB");
 
     const filename = `${Date.now()}-${file.originalname.replace(/\s+/g, "-")}`;
-    const filePath = `${folder}/${filename}`;
+    const blobPath = `${folder}/${filename}`;
 
-    const { error } = await supabase.storage
-        .from("uploads")
-        .upload(filePath, file.buffer, {
-            contentType: file.mimetype,
-            upsert: false,
-        });
+    const { url } = await put(blobPath, file.buffer, {
+        access: "public",
+        contentType: file.mimetype,
+    });
 
-    if (error) throw new Error(error.message);
+    return { filename, url };
+}
 
-    const { data: publicUrl } = supabase.storage
-        .from("uploads")
-        .getPublicUrl(filePath);
+export async function deleteImageFromVercelBlob(url: string) {
+  if (!url) throw new Error("URL não fornecida");
 
-    return { filename, url: publicUrl.publicUrl };
+  await del(url);
+  return { message: "Arquivo removido com sucesso" };
 }
 
 export async function uploadImageLocal(file: Express.Multer.File, folder: string) {

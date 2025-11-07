@@ -2,7 +2,7 @@ import { Router } from "express";
 import { prisma } from "../utils/prisma.js";
 import { authenticate, type AuthenticatedRequest } from "../middleware/authenticate.js";
 import multer from "multer";
-import { uploadImage } from "../utils/upload.js";
+import { deleteImageFromVercelBlob, uploadImage } from "../utils/upload.js";
 
 const storage = multer.memoryStorage();
 const upload = multer({
@@ -100,7 +100,12 @@ router.put("/:id", authenticate, upload.array("images"), async (req: Authenticat
 
     if (req.files && Array.isArray(req.files) && req.files.length > 0) {
         try {
+            const existingPhotos = await prisma.carPhotos.findMany({ where: { carId } });
+            for (const photo of existingPhotos) {
+                await deleteImageFromVercelBlob(photo.url);
+            }
             await prisma.carPhotos.deleteMany({ where: { carId } });
+
             for (const file of req.files) {
                 const { filename, url } = await uploadImage(file, `cars/${carId}`);
                 await prisma.carPhotos.create({
