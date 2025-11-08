@@ -4,6 +4,20 @@ import { authenticate, type AuthenticatedRequest } from "../middleware/authentic
 
 const router = Router();
 
+function checkFormat(value: string) {
+  const formats = {
+    cpf: /^\d{3}\.\d{3}\.\d{3}-\d{2}$/,
+    telephone: /^\d{2}\s\d{5}-\d{4}$/,
+    email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  }
+
+  if (formats.cpf.test(value)) return true;
+  if (formats.telephone.test(value)) return true;
+  if (formats.email.test(value)) return true;
+  return false;
+}
+
+
 router.get("/", authenticate, async (req: AuthenticatedRequest, res: Response) => {
   if (!req.isAdmin) return res.status(403).json({ message: "Acesso negado" });
 
@@ -80,6 +94,18 @@ router.get("/:id", authenticate, async (req: AuthenticatedRequest, res: Response
 router.post("/", authenticate, async (req: AuthenticatedRequest, res: Response) => {
   const { birthDate, name, address, cpf, rg, phone, email, observation } = req.body;
 
+  if (!checkFormat(cpf)) {
+    return res.status(403).json({ message: "Formato inválido de CPF, utilize 000.000.000-00" });
+  }
+
+  if (!checkFormat(phone)) {
+    return res.status(403).json({ message: "Formato inválido de telefone, utilize DDD 00000-0000" });
+  }
+
+  if (!checkFormat(email)) {
+    return res.status(403).json({ message: "Formato inválido de email" });
+  }
+
   if (!req.isAdmin)
     return res.status(403).json({ message: "Permissão negada" });
 
@@ -107,6 +133,18 @@ router.post("/", authenticate, async (req: AuthenticatedRequest, res: Response) 
 router.put("/:id", authenticate, async (req: AuthenticatedRequest, res: Response) => {
   const clientId = Number(req.params.id);
   const { birthDate, name, address, cpf, rg, phone, email, active, observation } = req.body;
+
+  if (!checkFormat(cpf)) {
+    return res.status(403).json({ message: "Formato inválido de CPF, utilize 000.000.000-00" });
+  }
+
+  if (!checkFormat(phone)) {
+    return res.status(403).json({ message: "Formato inválido de telefone, utilize DDD 00000-0000" });
+  }
+
+  if (!checkFormat(email)) {
+    return res.status(403).json({ message: "Formato inválido de email" });
+  }
 
   const client = await prisma.clients.findUnique({ where: { id: clientId } });
   if (!client) return res.status(404).json({ message: "Cliente não encontrado" });
