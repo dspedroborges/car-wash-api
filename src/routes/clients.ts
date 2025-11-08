@@ -17,7 +17,6 @@ function checkFormat(value: string) {
   return false;
 }
 
-
 router.get("/", authenticate, async (req: AuthenticatedRequest, res: Response) => {
   if (!req.isAdmin) return res.status(403).json({ message: "Acesso negado" });
 
