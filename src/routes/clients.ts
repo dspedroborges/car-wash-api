@@ -167,7 +167,7 @@ router.delete("/:id", authenticate, async (req: AuthenticatedRequest, res: Respo
 
   await prisma.clients.delete({ where: { id: clientId } });
 
-  res.status(200).json({ message: "Cliente deletado com sucesso" });
+  res.status(200).json({ message: "Cliente deletado com sucesso" }); // ok
 });
 
 export default router;
