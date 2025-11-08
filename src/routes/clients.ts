@@ -74,6 +74,8 @@ router.get("/", authenticate, async (req: AuthenticatedRequest, res: Response) =
   ]);
 
   const totalPages = Math.ceil(total / take);
+  
+  console.log("TAKE =", take, "SKIP =", skip);
 
   res.status(200).json({ content: clients, totalPages });
 });
