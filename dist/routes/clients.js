@@ -67,7 +67,7 @@ router.get("/:id", authenticate, async (req, res) => {
     res.status(200).json(client);
 });
 router.post("/", authenticate, async (req, res) => {
-    const { birthDate, name, address, cpf, rg, phone, email } = req.body;
+    const { birthDate, name, address, cpf, rg, phone, email, observation } = req.body;
     if (!req.isAdmin)
         return res.status(403).json({ message: "Permissão negada" });
     const cpfExists = await prisma.clients.findFirst({
@@ -84,13 +84,14 @@ router.post("/", authenticate, async (req, res) => {
             rg,
             phone,
             email,
+            observation: observation ?? ""
         },
     });
     res.status(201).json({ message: "Cliente criado com sucesso" });
 });
 router.put("/:id", authenticate, async (req, res) => {
     const clientId = Number(req.params.id);
-    const { birthDate, name, address, cpf, rg, phone, email, contracted, active } = req.body;
+    const { birthDate, name, address, cpf, rg, phone, email, active, observation } = req.body;
     const client = await prisma.clients.findUnique({ where: { id: clientId } });
     if (!client)
         return res.status(404).json({ message: "Cliente não encontrado" });
@@ -115,6 +116,7 @@ router.put("/:id", authenticate, async (req, res) => {
             phone,
             email,
             active,
+            observation: observation ?? ""
         },
     });
     res.status(200).json({ message: "Cliente atualizado com sucesso" });

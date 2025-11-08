@@ -70,6 +70,7 @@ model Clients {
   phone     String
   email     String
   active    Boolean  @default(true)
+  observation   String?
 
   cars  Cars[]
   debts Debts[]

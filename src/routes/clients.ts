@@ -77,7 +77,7 @@ router.get("/:id", authenticate, async (req: AuthenticatedRequest, res: Response
 });
 
 router.post("/", authenticate, async (req: AuthenticatedRequest, res: Response) => {
-  const { birthDate, name, address, cpf, rg, phone, email } = req.body;
+  const { birthDate, name, address, cpf, rg, phone, email, observation } = req.body;
 
   if (!req.isAdmin)
     return res.status(403).json({ message: "Permissão negada" });
@@ -96,6 +96,7 @@ router.post("/", authenticate, async (req: AuthenticatedRequest, res: Response) 
       rg,
       phone,
       email,
+      observation: observation ?? ""
     },
   });
 
@@ -104,7 +105,7 @@ router.post("/", authenticate, async (req: AuthenticatedRequest, res: Response) 
 
 router.put("/:id", authenticate, async (req: AuthenticatedRequest, res: Response) => {
   const clientId = Number(req.params.id);
-  const { birthDate, name, address, cpf, rg, phone, email, contracted, active } = req.body;
+  const { birthDate, name, address, cpf, rg, phone, email, active, observation } = req.body;
 
   const client = await prisma.clients.findUnique({ where: { id: clientId } });
   if (!client) return res.status(404).json({ message: "Cliente não encontrado" });
@@ -131,6 +132,7 @@ router.put("/:id", authenticate, async (req: AuthenticatedRequest, res: Response
       phone,
       email,
       active,
+      observation: observation ?? ""
     },
   });
 
