@@ -10,7 +10,7 @@ router.get("/", authenticate, async (req: AuthenticatedRequest, res: Response) =
   const page = parseInt(req.query.page as string) || 1;
   const searchParam = (req.query.searchParam as string)?.trim() || "";
   const filter = req.query.filter as string;
-  const take = 10;
+  const take = 5;
   const skip = (page - 1) * take;
 
   const where: any = {};
@@ -53,6 +53,7 @@ router.get("/", authenticate, async (req: AuthenticatedRequest, res: Response) =
         phone: true,
         email: true,
         active: true,
+        observation: true,
       },
       where,
     }),
