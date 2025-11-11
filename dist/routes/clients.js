@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { prisma } from "../utils/prisma.js";
 import { authenticate } from "../middleware/authenticate.js";
+import { stringify } from "csv-stringify/sync";
 const router = Router();
 function checkFormat(value) {
     const formats = {
@@ -30,7 +31,7 @@ router.get("/", authenticate, async (req, res) => {
             { name: { contains: searchParam, mode: "insensitive" } },
             { email: { contains: searchParam, mode: "insensitive" } },
             { cpf: { contains: searchParam, mode: "insensitive" } },
-            { cars: { some: { plate: { contains: searchParam, mode: "insensitive" } } } },
+            { cars: { some: { plate: { contains: searchParam.replaceAll(" ", ""), mode: "insensitive" } } } },
         ];
     }
     if (filter === "active")
@@ -40,10 +41,20 @@ router.get("/", authenticate, async (req, res) => {
     else if (filter === "expired") {
         const now = new Date();
         where.AND = [
-            // tem pelo menos uma venda expirada
             { debts: { some: { expiresAt: { lt: now } } } },
-            // não tem nenhuma venda futura
-            { debts: { none: { expiresAt: { gte: now } } } },
+        ];
+    }
+    else if (filter === "delinquent") {
+        const now = new Date();
+        where.AND = [
+            {
+                debts: {
+                    some: {
+                        expiresAt: { lt: now },
+                        status: "pending",
+                    },
+                },
+            },
         ];
     }
     else {
@@ -70,8 +81,80 @@ router.get("/", authenticate, async (req, res) => {
         prisma.clients.count({ where }),
     ]);
     const totalPages = Math.ceil(total / take);
-    console.log("TAKE =", take, "SKIP =", skip);
     res.status(200).json({ content: clients, totalPages });
+});
+router.get("/csv", authenticate, async (req, res) => {
+    if (!req.isAdmin)
+        return res.status(403).json({ message: "Acesso negado" });
+    const searchParam = req.query.searchParam?.trim() || "";
+    const filter = req.query.filter;
+    const where = {};
+    if (searchParam) {
+        where.OR = [
+            { name: { contains: searchParam, mode: "insensitive" } },
+            { email: { contains: searchParam, mode: "insensitive" } },
+            { cpf: { contains: searchParam, mode: "insensitive" } },
+            { cars: { some: { plate: { contains: searchParam.replaceAll(" ", ""), mode: "insensitive" } } } },
+        ];
+    }
+    if (filter === "active")
+        where.active = true;
+    else if (filter === "inactive")
+        where.active = false;
+    else if (filter === "expired") {
+        const now = new Date();
+        where.AND = [
+            { debts: { some: { expiresAt: { lt: now } } } },
+        ];
+    }
+    else if (filter === "delinquent") {
+        const now = new Date();
+        where.AND = [
+            {
+                debts: {
+                    some: {
+                        expiresAt: { lt: now },
+                        status: "pending",
+                    },
+                },
+            },
+        ];
+    }
+    else {
+        where.active = true;
+    }
+    const clients = await prisma.clients.findMany({
+        orderBy: { createdAt: "desc" },
+        select: {
+            id: true,
+            name: true,
+            address: true,
+            cpf: true,
+            rg: true,
+            phone: true,
+            email: true,
+            active: true,
+            observation: true,
+        },
+        where,
+    });
+    const csv = stringify(clients, {
+        header: true,
+        columns: [
+            { key: "id", header: "ID" },
+            { key: "name", header: "Nome" },
+            { key: "address", header: "Endereço" },
+            { key: "cpf", header: "CPF" },
+            { key: "rg", header: "RG" },
+            { key: "phone", header: "Telefone" },
+            { key: "email", header: "E-mail" },
+            { key: "active", header: "Ativo" },
+            { key: "observation", header: "Observação" },
+        ],
+    });
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", "attachment; filename=clientes.csv");
+    res.status(200).send(csv);
 });
 router.get("/:id", authenticate, async (req, res) => {
     const clientId = Number(req.params.id);

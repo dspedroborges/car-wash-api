@@ -16,7 +16,7 @@ import { encryptPassword } from "./utils/auth.js";
 import cookieParser from "cookie-parser";
 import rateLimit from "express-rate-limit";
 import { xssSanitizerMiddleware } from "./middleware/xss.js";
-import { oldData } from "./utils/data.js";
+import { importOldData, oldData } from "./utils/data.js";
 
 dotenv.config();
 
@@ -85,23 +85,7 @@ app.get("/", async (req, res) => {
 });
 
 app.get("/old-data", async (req, res) => {
-  const clients = oldData
-    .map((item: any) => item.client)
-    .filter((c: any) => c?.name)
-
-  await prisma.clients.createMany({
-    data: clients.map((c: any) => ({
-      name: c.name,
-      birthDate: c.birthDate ? new Date(c.birthDate) : new Date(),
-      address: c.address || "",
-      cpf: c.cpf || "",
-      rg: c.rg || "",
-      phone: c.phone || "",
-      email: c.email || "",
-      active: Boolean(c.active),
-    })),
-    skipDuplicates: true,
-  })
+  importOldData(oldData, 1);
 
   res.send("Added");
 });

@@ -5508,4 +5508,113 @@ export const oldData = [
         }
     }
 ];
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
+function safeStr(v) { return (v ?? ""); }
+function safeDate(v, fallback = "1970-01-01T00:00:00.000Z") {
+    return v ? new Date(v) : new Date(fallback);
+}
+function safeNumber(v, fallback = 0) {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : fallback;
+}
+export async function importOldData(data, systemUserId) {
+    for (const item of data) {
+        try {
+            const cpf = item.client?.cpf?.trim() ?? "";
+            if (!cpf)
+                continue; // ignora clientes sem CPF
+            const clientData = {
+                name: item.client?.name ?? "",
+                birthDate: item.client?.birthDate ? new Date(item.client.birthDate) : new Date(),
+                address: item.client?.address ?? "",
+                cpf,
+                rg: item.client?.rg ?? "",
+                phone: item.client?.phone ?? "",
+                email: item.client?.email ?? "",
+                active: item.client?.active ?? true,
+                observation: item.client?.observation ?? "",
+            };
+            let client = await prisma.clients.findUnique({ where: { cpf } });
+            if (!client) {
+                try {
+                    client = await prisma.clients.create({ data: clientData });
+                }
+                catch (err) {
+                    if (err.code === "P2002") {
+                        client = await prisma.clients.findUnique({ where: { cpf } });
+                    }
+                    else
+                        throw err;
+                }
+            }
+            if (!client)
+                continue;
+            const rawPlate = item.car?.plate ?? "";
+            const normalizedPlate = rawPlate.replace(/\s+/g, "").toUpperCase();
+            const carData = {
+                model: item.car?.model ?? "",
+                color: item.car?.color ?? "",
+                plate: normalizedPlate,
+                clientId: client.id,
+            };
+            let car = await prisma.cars.findUnique({ where: { plate: carData.plate } });
+            if (!car) {
+                try {
+                    car = await prisma.cars.create({ data: carData });
+                }
+                catch (err) {
+                    if (err.code === "P2002") {
+                        carData.plate = "";
+                        car = await prisma.cars.create({ data: carData });
+                    }
+                    else
+                        throw err;
+                }
+            }
+            let washType = null;
+            if (item.debt?.washType) {
+                washType = await prisma.washTypes.upsert({
+                    where: { name: item.debt.washType },
+                    update: {},
+                    create: { name: item.debt.washType },
+                });
+            }
+            let pkg = null;
+            if (item.debt?.package) {
+                const price = Number.isFinite(Number(item.debt?.value)) ? Number(item.debt.value) : 0;
+                pkg = await prisma.packages.upsert({
+                    where: { name: item.debt.package },
+                    update: {},
+                    create: {
+                        name: item.debt.package,
+                        washTypeId: washType?.id ?? null,
+                        price,
+                    },
+                });
+            }
+            const debtValue = Number.isFinite(Number(item.debt?.value)) ? Number(item.debt.value) : 0;
+            await prisma.debts.create({
+                data: {
+                    clientId: client.id,
+                    userId: systemUserId,
+                    washTypeId: washType?.id ?? null,
+                    packageId: pkg?.id ?? null,
+                    createdAt: item.debt?.createdAt ? new Date(item.debt.createdAt) : new Date(),
+                    expiresAt: item.debt?.expiresAt ? new Date(item.debt.expiresAt) : new Date(),
+                    observation: item.debt?.observation ?? "",
+                    discount: 0,
+                    value: debtValue,
+                    paymentMethod: item.debt?.paymentMethod ?? "manual",
+                    status: item.debt?.status ?? "pending",
+                },
+            });
+        }
+        catch (e) {
+            console.error("Erro ao importar item:", e);
+        }
+        console.log(item);
+    }
+    console.log("Ok");
+}
 //# sourceMappingURL=data.js.map

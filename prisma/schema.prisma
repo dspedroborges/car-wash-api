@@ -60,17 +60,17 @@ model Permissions {
 }
 
 model Clients {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  birthDate DateTime
-  name      String
-  address   String
-  cpf       String
-  rg        String
-  phone     String
-  email     String
-  active    Boolean  @default(true)
-  observation   String?
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  birthDate   DateTime
+  name        String
+  address     String
+  cpf         String   @unique
+  rg          String   
+  phone       String   @unique
+  email       String   @unique
+  active      Boolean  @default(true)
+  observation String?
 
   cars  Cars[]
   debts Debts[]
@@ -114,11 +114,11 @@ model Packages {
   id          Int      @id @default(autoincrement())
   name        String   @unique
   description String?
-  washTypeId  Int
+  washTypeId  Int?
   createdAt   DateTime @default(now())
-  price       Decimal   @db.Decimal(10,2)
+  price       Decimal  @db.Decimal(10, 2)
 
-  washType WashTypes @relation(fields: [washTypeId], references: [id], onDelete: Cascade)
+  washType WashTypes? @relation(fields: [washTypeId], references: [id], onDelete: Cascade)
   debts    Debts[]
 }
 
@@ -132,7 +132,7 @@ model Debts {
   expiresAt     DateTime
   observation   String?
   discount      Int?          @default(0)
-  value         Decimal   @db.Decimal(10,2)
+  value         Decimal       @db.Decimal(10, 2)
   paymentMethod PaymentMethod
   status        PaymentStatus
 

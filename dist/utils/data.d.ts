@@ -415,4 +415,5 @@ export declare const oldData: ({
         paymentMethod: string;
     };
 })[];
+export declare function importOldData(data: any[], systemUserId: number): Promise<void>;
 //# sourceMappingURL=data.d.ts.map
